@@ -114,8 +114,7 @@ npm run dev
 
 ## Features
 
-- Snapshot-based behavioral tracking (every 30s)
+- Snapshot-based behavioral tracking
 - GRU sequence embeddings (price + time-gap)
 - Hybrid model inference (GRU + XGBoost)
 - Real-time discount popup for high-intent users
-- Async prediction logging
