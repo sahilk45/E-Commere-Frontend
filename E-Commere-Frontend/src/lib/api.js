@@ -59,11 +59,11 @@ export const predictIntent = async (payload) => {
   } catch (err) {
     console.warn("[NEXORA] Backend unreachable — mock mode active");
     console.log("[NEXORA] API contract:", JSON.stringify(payload, null, 2));
-    const views   = payload.total_views_so_far  || 1;
-    const focus   = payload.live_focus_ratio     || 1;
-    const scatter = payload.category_scatter_ratio || 1;
-    const brands  = payload.brand_switches       || 4;
-    const idle    = payload.idle_time_seconds    || 0;
+    const views   = payload.tabular_features?.total_views_so_far  || 1;
+    const focus   = payload.tabular_features?.live_focus_ratio     || 1;
+    const scatter = payload.tabular_features?.category_scatter_ratio || 1;
+    const brands  = payload.tabular_features?.brand_switches       || 4;
+    const idle    = payload.tabular_features?.idle_time_seconds    || 0;
     const mockProb = Math.min(0.94,
       0.10
       + (views   * 0.055)
@@ -76,7 +76,7 @@ export const predictIntent = async (payload) => {
     return {
       success: false,
       mock: true,
-      data: { probability: mockProb, prediction: mockProb >= 0.536 ? 1 : 0 }
+      data: { probability: mockProb, prediction: mockProb >= 0.35 ? 1 : 0 }
     };
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 import useTracker from '../../hooks/useTracker.jsx'
 
 // ── Deterministic social proof (consistent per product, not random per render)
@@ -26,31 +26,11 @@ const TAG_STYLE = {
 
 export default function ProductCard({ product, onView, onQuickAdd }) {
   const [hovered, setHovered] = useState(false)
-  const { trackView, trackCart } = useTracker()
-  const cardRef = useRef(null)
-  const scrollTrackedRef = useRef(false)   // fire only once per mount
+  const { trackCart } = useTracker()  // trackView is called by App.jsx, NOT here
 
-  // ── Intersection Observer — passive scroll impression ───────────────────
-  useEffect(() => {
-    const el = cardRef.current
-    if (!el) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !scrollTrackedRef.current) {
-          scrollTrackedRef.current = true
-          trackView(product)   // soft "scroll_view" signal
-        }
-      },
-      { threshold: 0.5 }     // 50% visible triggers impression
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [product, trackView])
-
+  // Card click: delegate to App.jsx which calls trackView once
   const handleCardClick = () => {
-    trackView(product)
-    onView(product)
+    onView(product)   // App.jsx → handleProductView → trackView + setSelectedProduct
   }
 
   const handleQuickAdd = (e) => {
@@ -65,7 +45,6 @@ export default function ProductCard({ product, onView, onQuickAdd }) {
 
   return (
     <article
-      ref={cardRef}
       className="flex flex-col cursor-pointer group"
       onClick={handleCardClick}
       onMouseEnter={() => setHovered(true)}

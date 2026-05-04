@@ -3,7 +3,7 @@ import { predictIntent } from '../lib/api.js'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SNAPSHOT_TIMES   = [84, 165, 296, 611, 1084]
-const INTENT_THRESHOLD = 0.536
+const INTENT_THRESHOLD = 0.35
 const OFFER_DURATION   = 900   // 15 minutes
 
 const DISCOUNT_MAP = {
@@ -61,27 +61,28 @@ export function useSnapshots({ tracker }) {
         if (isLoadingRef.current)          break
 
         firedSnapshots.current.add(i)
-        const features = tracker.computeTabularFeatures(snapshotTime)
-        if (!features) break
+        const tabular_features = tracker.computeTabularFeatures(snapshotTime)
+        const gru_sequence = tracker.computeGRUSequence(snapshotTime)
+        if (!tabular_features) break
 
         isLoadingRef.current = true
         setIsLoading(true)
         try {
-          const result = await predictIntent({ ...features })
+          const result = await predictIntent({ tabular_features, gru_sequence })
           const { probability, prediction } = result.data
           const mock = result.mock ?? false
 
           setSnapshotResults(prev => [...prev, { snapshotTime, probability, prediction, mock }])
 
           if (probability >= INTENT_THRESHOLD && !showDiscountRef.current) {
-            const cat      = features._dominantCat1 ?? ''
+            const cat      = tabular_features._dominantCat1 ?? ''
             const template = DISCOUNT_MAP[cat] ?? { code: 'NEXORA10', pct: 10, label: 'your selection' }
             setDiscountInfo({
               category: cat,
               code:     template.code,
               pct:      template.pct,
               label:    template.label,
-              products: features._recentProducts ?? [],
+              products: tabular_features._recentProducts ?? [],
               probability,
             })
             showDiscountRef.current = true
